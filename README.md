@@ -11,6 +11,19 @@
 1 ) slow_query计时plugin, 将会在结果中包含请求时间, 该plugin自身将会每5秒响应一次. <br/>
 2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞5秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求).</p>
 </p>
+
+How to use ?
+
+1, tar -zxvf libevent.tar.gz 解压
+2, make -C plugin/slow_query && make -C plugin/fake_mysql 编译两个Plugin
+3, make 编译Server
+4, ./server 运行
+
+How to test ?
+
+1, telnet localhost 10000
+2, 输入你的请求, 回车结束.(可以想办法欺负Server, 使劲敲回车, 等待Server应答, Server以回车符进行拆包).
+
 <p>===============================================================================================================</p>
 <h3>背景:</h3>       
       XX希望用Epoll开发Server, 但业务上有很多阻塞的逻辑, 怕会阻塞Epoll, 所以不知道怎么设计比较好, 也就是知道大概要怎样, 但实际操作上又举步维艰的一种状态.
