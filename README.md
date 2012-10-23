@@ -13,7 +13,7 @@
 </p>
 
 <h2>How to use ?</h2>
-
+(需要安装libevent)
 1, tar -zxvf libevent.tar.gz 解压<br/>
 2, make -C plugin/slow_query && make -C plugin/fake_mysql 编译两个Plugin<br/>
 3, make 编译Server<br/>
