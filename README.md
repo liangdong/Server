@@ -12,18 +12,16 @@
 2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞5秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求).</p>
 </p>
 
-<p>
-How to use ?
+<h2>How to use ?</h2>
 
-1, tar -zxvf libevent.tar.gz 解压
-2, make -C plugin/slow_query && make -C plugin/fake_mysql 编译两个Plugin
-3, make 编译Server
-4, ./server 运行
+1, tar -zxvf libevent.tar.gz 解压<br/>
+2, make -C plugin/slow_query && make -C plugin/fake_mysql 编译两个Plugin<br/>
+3, make 编译Server<br/>
+4, ./server 运行<br/>
 
-How to test ?
-
-1, telnet localhost 10000
-2, 输入你的请求, 回车结束.(可以想办法欺负Server, 使劲敲回车, 等待Server应答, Server以回车符进行拆包).
+<h2>How to test ?</h2>
+1, telnet localhost 10000<br/>
+2, 输入你的请求, 回车结束.(可以想办法欺负Server, 使劲敲回车, 等待Server应答, Server以回车符进行拆包).<br/>
 </p>
 
 <p>===============================================================================================================</p>
