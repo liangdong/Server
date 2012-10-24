@@ -93,7 +93,13 @@ bool Client::InitClient(Server *server)
     }
 
     SetStatus(BEFORE_REQUEST);
-    StatusMachine();
+    
+    // make sure plugin works well
+    if (!StatusMachine())
+    {
+        return false;
+    }
+    
     return true;
 }
 
