@@ -15,8 +15,5 @@ src/main.o:src/main.cpp include/server.h
 
 src/plugin.o:src/plugin.cpp include/plugin.h
 	g++ -o $@ -c $< -I./include
-
-dist:all
-	tar --exclude=server.tar.gz -czvf server.tar.gz . 
 clean:
 	rm -f src/*.o server
