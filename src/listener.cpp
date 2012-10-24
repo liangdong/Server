@@ -4,10 +4,12 @@
 
 Listener::Listener(const std::string &ip, short port)
 {
-    m_event = NULL;
+    m_event          = NULL;
+    m_count_client   = 0;
 
-    m_listen_addr.sin_family = AF_INET;
-    m_listen_addr.sin_port = htons(port);
+    //ipv4 only
+    m_listen_addr.sin_family      = AF_INET;
+    m_listen_addr.sin_port        = htons(port);
     m_listen_addr.sin_addr.s_addr = inet_addr(ip.c_str());
 }
 
@@ -15,8 +17,9 @@ Listener::~Listener()
 {
     if (m_event)
     {
-        close(m_sockfd);
+        //first event_free, close socket secondly
         event_free(m_event);
+        close(m_sockfd);
     }
 }
 
@@ -31,8 +34,8 @@ void Listener::InitListener(Server *server)
     bind(m_sockfd, (struct sockaddr*)&m_listen_addr, sizeof(m_listen_addr));
     listen(m_sockfd, 5);
 
-    m_server = server;    
-    m_event = event_new(m_server->m_server_base, m_sockfd, EV_READ | EV_PERSIST, Listener::ListenerEventCallback, this);
+    m_server = server;
+    m_event  = event_new(m_server->m_server_base, m_sockfd, EV_READ | EV_PERSIST, Listener::ListenerEventCallback, this);
     event_add(m_event, NULL);
 }
 
@@ -63,7 +66,8 @@ void Listener::ListenerEventCallback(evutil_socket_t sockfd, short event, void *
 
         if (errno != EAGAIN && errno != EINTR)
         {
-            event_base_loopexit(listener->m_server->m_server_base, NULL);
+            //exit event loop next round
+            event_base_loopexit(listener->m_server->m_server_base, NULL);  
         }
     }
 }

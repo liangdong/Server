@@ -32,11 +32,13 @@ Server::~Server()
             ++ iter;
         }
         
-        // plugins can't be remove until client's plugin_data_slots has been clear by plugins
+        // plugins can't be remove until client's plugin_data_slots has been cleared by plugins
         RemovePlugins();
 
         event_free(m_exit_event);    
         event_base_free(m_server_base);
+
+        std::cerr << "Total Client: " << m_listener.m_count_client << std::endl;
     }
 
     std::cerr << "Server Closed" << std::endl;
