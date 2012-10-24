@@ -196,17 +196,17 @@ class PluginMysql: public Plugin
         }
 
     private:
-        struct event       *m_event;
+        struct event          *m_event;
 
-        pthread_t           m_tid;
-        bool                m_quit_thread;
+        pthread_t              m_tid;
+        bool                   m_quit_thread;
 
-        pthread_mutex_t     m_request_mutex;
-        pthread_cond_t      m_request_cond;
+        pthread_mutex_t        m_request_mutex;
+        pthread_cond_t         m_request_cond;
         std::queue<MysqlTask*> m_request_queue;
         
-        int                 m_response_pipe[2];
-        pthread_mutex_t     m_response_mutex;
+        int                    m_response_pipe[2];
+        pthread_mutex_t        m_response_mutex;
         std::queue<MysqlTask*> m_response_queue;
 };
 
