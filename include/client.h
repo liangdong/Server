@@ -28,20 +28,20 @@ struct Client
     struct sockaddr_in m_client_addr;
     struct event      *m_event;
     
-    std::string        m_inbuf;
-    std::string        m_intemp;
-    std::string        m_outbuf;
+    std::string        m_inbuf;             //all data read from client
+    std::string        m_intemp;            //just for once read(man 3p read)
+    std::string        m_outbuf;            //all data waiting to write to client
     
-    std::string        m_request;
-    std::string        m_response; 
+    std::string        m_request;           //one request gained from m_inbuf
+    std::string        m_response;          //one response that will be appended to m_outbuf
     
-    ClientStatus       m_status;
+    ClientStatus       m_status;  
     
-    void*             *m_plugin_data_slots;
-    int                m_plugin_count;
+    void*             *m_plugin_data_slots; //plugin's data for this client
+    int                m_plugin_count;      
 
-    bool               m_want_write;
-    bool               m_want_read;
+    bool               m_want_write;        //really want to keep write event
+    bool               m_want_read;         //really want to keep read  event
     
     Client();
     ~Client(); 
@@ -54,12 +54,13 @@ struct Client
     void NotWantWrite();
     void SetWriteEvent();
     void UnsetWriteEvent();
-    bool StatusMachine();
+    bool StatusMachine();                   //core algorithm: status machine
     void SetStatus(ClientStatus status);
 
-    bool MakePluginDataSlots();
-    void DelPluginDataSlots();
+    bool MakePluginDataSlots();             //prepare for plugin's data-slot for this client
+    void DelPluginDataSlots();              //free the plugin data for this client
     
+    // a series of plugin callback wrapper
     bool PluginBeforeRequest();
     bool PluginOnRequest();
     bool PluginAfterRequest();
