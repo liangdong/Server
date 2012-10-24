@@ -31,7 +31,9 @@ class Plugin
         Plugin();
         virtual ~Plugin(); 
         
-        void *m_plugin_data; //discard(should only used by plugin itslef)
+        //m_plugin_data: may be discard in c++, 
+        //because object in c++ can hold the data in member(this is only a choice for plugin developer)
+        void *m_plugin_data;         
         void *m_plugin_so;   //the handler created by dlopen
         int   m_plugin_index;//the plugin's register index
         bool  m_is_loaded;   //whether the OnLoad has been called

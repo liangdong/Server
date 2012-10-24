@@ -23,22 +23,24 @@ class Server
 
         bool StartServer();
 
+        //watch for the ctrl+c(SIGINT) signal, once catched -> exit libevent loop
         static void ServerExitSignal(evutil_socket_t signo, short, void *userdata);
         
-        Plugin*           *m_plugins;
-        int                m_plugin_count;
+        Plugin*           *m_plugins;       //all register plugins
+        int                m_plugin_count;  //count of plugins
 
-        struct Listener    m_listener;
-        struct event_base *m_server_base;
+        struct Listener    m_listener;      //listen for client
+        struct event_base *m_server_base;   
         struct event      *m_exit_event;
-        ClientMap          m_client_map;
+
+        ClientMap          m_client_map;    //map a fd to a client online
 
     private:
-        bool SetupPlugins();
-        void RemovePlugins();
+        bool SetupPlugins();  //get plugin object from so
+        void RemovePlugins(); //delete plugin object from so
 
-        bool LoadPlugins();
-        void UnloadPlugins();
+        bool LoadPlugins();   //call each plugin's OnLoad callback to init some global plugin data
+        void UnloadPlugins(); //call each plugin's UnLoad callback to free any  global plugin data
 };
 
 #endif
