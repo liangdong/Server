@@ -1,4 +1,4 @@
-<h1>Server 一个纯异步的Server简单实现</h1>
+<h1>Server 一个纯异步的Server简单实现 (最新代码行统计：1300)</h1>
 <h3>基于Nginx/Lighttpd的状态机实现, 再也不用去一坨代码里找真相啦</h3>
 <br/>
 
