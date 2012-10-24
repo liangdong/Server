@@ -217,6 +217,7 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
     }
 }
 
+//core algorithm !!
 bool Client::StatusMachine()
 {
     std::string::size_type newline;
@@ -226,18 +227,18 @@ bool Client::StatusMachine()
     {
         switch (m_status)
         {
-            case BEFORE_REQUEST:
+            case BEFORE_REQUEST:  //transitional status
                 if (!PluginBeforeRequest()) {
                     return false;
                 }
                 WantRead();
                 SetStatus(ON_REQUEST);
                 break;
-            case ON_REQUEST:
+            case ON_REQUEST:      //lasting status
                 if (!PluginOnRequest()) {
                     return false;
                 }
-                if  ((newline = m_inbuf.find('\n')) != std::string::npos)
+                if  ((newline = m_inbuf.find('\n')) != std::string::npos) //gain a request
                 {
                     m_request = m_inbuf.substr(0, newline);
                     m_inbuf.erase(0, newline + 1);
@@ -248,28 +249,28 @@ bool Client::StatusMachine()
                 {
                     return true;
                 }
-            case AFTER_REQUEST:
+            case AFTER_REQUEST:   //transitional status
                 if (!PluginAfterRequest()) {
                     return false;
                 }
                 NotWantRead();
                 SetStatus(BEFORE_RESPONSE);
                 break;
-            case BEFORE_RESPONSE:
+            case BEFORE_RESPONSE: //transitional status
                 if (!PluginBeforeResponse()) {
                     return false;
                 }
                 WantWrite();
                 SetStatus(ON_RESPONSE);
                 break;
-            case ON_RESPONSE:
+            case ON_RESPONSE:    //lasting status
                 status = PluginOnResponse();
                 if (status == ERROR) {return false;}
                 else if (status == NOT_OK) {return true;}
                 m_outbuf += m_response;
                 SetStatus(AFTER_RESPONSE);
                 break;
-            case AFTER_RESPONSE:
+            case AFTER_RESPONSE:  //transitional status
                 if (!PluginAfterResponse()) {
                     return false;
                 }
@@ -348,6 +349,7 @@ bool Client::PluginBeforeResponse()
     return true;
 }
 
+//diffrent, but necessary!
 PluginStatus Client::PluginOnResponse()
 {
     Plugin * *plugins = m_server->m_plugins;
