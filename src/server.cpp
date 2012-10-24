@@ -53,7 +53,7 @@ bool Server::SetupPlugins()
     {
         plugin_path = plugin_config[plugin_index];
         
-        void *so = dlopen(plugin_path, RTLD_LAZY);
+        void *so    = dlopen(plugin_path, RTLD_LAZY);
         
         if (!so)
         {
@@ -61,7 +61,7 @@ bool Server::SetupPlugins()
             return false;
         }
     
-        Plugin::SetupPlugin  sp = (Plugin::SetupPlugin)dlsym(so, "SetupPlugin");
+        Plugin::SetupPlugin  sp = (Plugin::SetupPlugin )dlsym(so, "SetupPlugin");
         Plugin::RemovePlugin rp = (Plugin::RemovePlugin)dlsym(so, "RemovePlugin");
 
         if (!sp || !rp)
@@ -79,13 +79,12 @@ bool Server::SetupPlugins()
             return false;
         }
 
-        plugin->m_setup_plugin = sp;
+        plugin->m_setup_plugin  = sp;
         plugin->m_remove_plugin = rp;
     
-        m_plugins = (Plugin* *)realloc(m_plugins, sizeof(*m_plugins) * (m_plugin_count + 1));
+        m_plugins = (Plugin* *) realloc(m_plugins, sizeof(*m_plugins) * (m_plugin_count + 1));
         m_plugins[m_plugin_count++] = plugin;
 
-        plugin->m_plugin_data  = NULL;
         plugin->m_plugin_so    = so;
         plugin->m_plugin_index = plugin_index;
     }
@@ -100,7 +99,7 @@ void Server::RemovePlugins()
     for (i = 0; i < m_plugin_count; ++ i)
     {
         Plugin *plugin = m_plugins[i];
-        Plugin::RemovePlugin rp = plugin->m_remove_plugin;
+        Plugin::RemovePlugin rp = plugin->m_remove_plugin; //must get a func copy, because plugin will be deleted
         rp(plugin);
         dlclose(plugin->m_plugin_so);
     }
@@ -108,25 +107,9 @@ void Server::RemovePlugins()
     free(m_plugins);
 }
 
-void Server::UnloadPlugins()
-{
-    Plugin *plugin;
-    int     i;
-
-    for (i = 0; i < m_plugin_count; ++ i)
-    {
-        plugin = m_plugins[i];
-        
-        if (plugin->m_is_loaded)
-        {
-            plugin->OnDestroy(this, i);
-        }
-    }
-}
-
 bool Server::LoadPlugins()
 {
-    int i;
+    int     i;
     Plugin *plugin;
     
     for (i = 0; i < m_plugin_count; ++ i)
@@ -144,6 +127,22 @@ bool Server::LoadPlugins()
     }
     
     return true;
+}
+
+void Server::UnloadPlugins()
+{
+    Plugin *plugin;
+    int     i;
+
+    for (i = 0; i < m_plugin_count; ++ i)
+    {
+        plugin = m_plugins[i];
+        
+        if (plugin->m_is_loaded)
+        {
+            plugin->OnDestroy(this, i);
+        }
+    }
 }
 
 bool Server::StartServer()

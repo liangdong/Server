@@ -17,24 +17,53 @@ Client::~Client()
 {
     if (m_event) 
     {
-        close(m_sockfd);
         event_free(m_event);
+        close(m_sockfd);
         Server::ClientMapIter iter = m_server->m_client_map.find(m_sockfd);
         m_server->m_client_map.erase(iter);
         DelPluginDataSlots();
     }
 }
 
+bool Client::InitClient(Server *server) 
+{
+    m_server = server;
+
+    m_intemp.reserve(10 * 1024 * 1024);
+    m_inbuf.reserve(10 * 1024 * 1024);
+    m_outbuf.reserve(10 * 1024 * 1024);
+    
+    evutil_make_socket_nonblocking(m_sockfd);
+    m_event = event_new(m_server->m_server_base, m_sockfd, EV_PERSIST, Client::ClientEventCallback, this);
+    event_add(m_event, NULL); 
+
+    if (!MakePluginDataSlots())
+    {
+        return false;
+    }
+
+    SetStatus(BEFORE_REQUEST);
+    
+    // check to make sure plugin works well
+    if (!StatusMachine())
+    {
+        return false;
+    }
+    
+    return true;
+}
+
 bool Client::MakePluginDataSlots()
 {    
     m_plugin_count = m_server->m_plugin_count;
     
+    //there's no plugin at all, return true directly
     if (!m_plugin_count)
     {
         return true;
     }
 
-    m_plugin_data_slots = new void*[m_plugin_count];
+    m_plugin_data_slots = new void*[m_plugin_count]; //no check for NULL, just keep it easy
     
     int i;
 
@@ -47,7 +76,7 @@ bool Client::MakePluginDataSlots()
 
     for (i = 0; i < m_plugin_count; ++ i)
     {
-        if (!plugins[i]->OnInit(this, i))
+        if (!plugins[i]->OnInit(this, i)) 
         {
             return false;
         }
@@ -75,34 +104,6 @@ void Client::DelPluginDataSlots()
     }
 }
 
-bool Client::InitClient(Server *server) 
-{
-    m_server = server;
-
-    m_intemp.reserve(10 * 1024 * 1024);
-    m_inbuf.reserve(10 * 1024 * 1024);
-    m_outbuf.reserve(10 * 1024 * 1024);
-    
-    evutil_make_socket_nonblocking(m_sockfd);
-    m_event = event_new(m_server->m_server_base, m_sockfd, EV_PERSIST, Client::ClientEventCallback, this);
-    event_add(m_event, NULL); 
-
-    if (!MakePluginDataSlots())
-    {
-        return false;
-    }
-
-    SetStatus(BEFORE_REQUEST);
-    
-    // make sure plugin works well
-    if (!StatusMachine())
-    {
-        return false;
-    }
-    
-    return true;
-}
-
 void Client::WantRead()
 {
     m_want_read = true;
@@ -121,6 +122,8 @@ void Client::NotWantRead()
     event_add(m_event, NULL); 
 }
 
+// client really want write, 
+// which means we should keep the write event whether or not there's anything to write right now.
 void Client::WantWrite() 
 {
     m_want_write = true;
@@ -129,8 +132,10 @@ void Client::WantWrite()
 
 void Client::NotWantWrite()
 {
-    m_want_write = false;
-    if (!m_outbuf.size())
+    m_want_write = false; //we really don't want to write any more.
+    
+    //but if there's anything left, just keep the write event to send off the left bytes.
+    if (!m_outbuf.size())     
     {
         UnsetWriteEvent();
     }
@@ -171,7 +176,8 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
         }
         else if (ret == 0)
         {
-            delete client;
+            delete client; //client wants to leave, 
+                           //so let it leave whether or not there's still any data waiting to send to it.
             return;
         }
         else
@@ -196,6 +202,7 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
         {
             client->m_outbuf.erase(client->m_outbuf.begin(), client->m_outbuf.begin() + ret);
 
+            //if client really want to keep write event, we can't unregister write event, even though there's nothing to send.
             if (client->m_outbuf.size() == 0 && !client->m_want_write)
             {
                 client->UnsetWriteEvent();
@@ -203,9 +210,10 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
         }
     }
 
+    // core logic, just call status machine to handle the whole thing, it's so easy :)
     if (!client->StatusMachine())
     {
-        delete client;
+        delete client; //some error happend, kick out the client
     }
 }
 
