@@ -6,9 +6,9 @@ class Client;
 
 enum PluginStatus
 {
-    OK,
-    NOT_OK,
-    ERROR,
+    OK,     //can goon to the next plugin
+    NOT_OK, //not ready, stay at the current one.
+    ERROR,  //error! just kill the client right now.
 };
 
 class Plugin
@@ -27,18 +27,19 @@ class Plugin
         virtual bool AfterResponse(Client *client, int plugin_index);
         virtual void OnClose(Client *client, int plugin_index);
         virtual void OnDestroy(Server *server, int plugin_index);
+        
         Plugin();
         virtual ~Plugin(); 
         
-        void *m_plugin_data;
-        void *m_plugin_so;
-        int   m_plugin_index;
-        bool  m_is_loaded;
+        void *m_plugin_data; //discard(should only used by plugin itslef)
+        void *m_plugin_so;   //the handler created by dlopen
+        int   m_plugin_index;//the plugin's register index
+        bool  m_is_loaded;   //whether the OnLoad has been called
 
-        SetupPlugin  m_setup_plugin;
-        RemovePlugin m_remove_plugin;
+        SetupPlugin  m_setup_plugin;  //got from so to create plugin object
+        RemovePlugin m_remove_plugin; //got from so to delete plugin object
 };
 
-extern const char * plugin_config[]; //add plugin in plugin.cpp
+extern const char * plugin_config[]; //config & add new plugins in plugin.cpp
 
 #endif
