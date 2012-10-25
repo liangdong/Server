@@ -32,6 +32,8 @@ struct MysqlTask
 
 #define TRACE() do { std::cerr << PNAME << __FUNCTION__ << std::endl; } while(0)
 
+#define THREAD_COUNT 5
+
 class PluginMysql: public Plugin
 {
     public:
@@ -50,8 +52,17 @@ class PluginMysql: public Plugin
             event_add(m_event, NULL);
 
             m_quit_thread = false;
-            pthread_create(&m_tid, NULL, MysqlThread, this);
-        
+            
+            m_tids = new pthread_t[THREAD_COUNT];
+
+            int i;
+            
+            // Mysql thread Pool Created
+            for (i = 0; i != THREAD_COUNT; ++ i)
+            {
+                pthread_create(m_tids + i, NULL, MysqlThread, this);
+            }
+
             return true;
         }
         virtual void OnDestroy(Server *server, int plugin_index)
@@ -60,11 +71,18 @@ class PluginMysql: public Plugin
             
             pthread_mutex_lock(&m_request_mutex);
             m_quit_thread = true;
-            pthread_cond_signal(&m_request_cond);
+            pthread_cond_broadcast(&m_request_cond); // Kill the Thread Pool, So Broadcast:)
             pthread_mutex_unlock(&m_request_mutex);
             
-            pthread_join(m_tid, NULL);
+            int i;
+
+            for (i = 0; i != THREAD_COUNT; ++ i)
+            {
+                pthread_join(m_tids[i], NULL);
+            }
             
+            delete []m_tids;
+
             event_free(m_event);
             pthread_mutex_destroy(&m_request_mutex);
             pthread_mutex_destroy(&m_response_mutex);
@@ -198,7 +216,7 @@ class PluginMysql: public Plugin
     private:
         struct event          *m_event;
 
-        pthread_t              m_tid;
+        pthread_t              *m_tids;
         bool                   m_quit_thread;
 
         pthread_mutex_t        m_request_mutex;
