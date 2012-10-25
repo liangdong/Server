@@ -1,4 +1,4 @@
-<h1>Server 一个纯异步的Server简单实现</h1>
+<h1>Server 一个纯异步的Server简单实现 (最新代码行统计：1300)</h1>
 <h3>基于Nginx/Lighttpd的状态机实现, 再也不用去一坨代码里找真相啦</h3>
 <br/>
 
@@ -10,6 +10,8 @@
 <p>Server自带两个Plugin:<br/>
 1 ) slow_query计时plugin, 将会在结果中包含请求时间, 该plugin自身将会每5秒响应一次. <br/>
 2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞5秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求).</p>
+特别注意fake_mysql插件暂时只启动了一个逻辑线程, 将会导致所有请求排队依次处理, 将在明后两天更改为线程池, 
+以便展现异步高并发的特性
 </p>
 
 <h2>How to use ?</h2>
