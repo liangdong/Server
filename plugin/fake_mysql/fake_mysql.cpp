@@ -56,7 +56,7 @@ class PluginMysql: public Plugin
             m_tids = new pthread_t[THREAD_COUNT];
 
             int i;
-            
+             
             // Mysql thread Pool Created
             for (i = 0; i != THREAD_COUNT; ++ i)
             {
