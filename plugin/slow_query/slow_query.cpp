@@ -13,6 +13,7 @@
 struct SlowQueryData
 {
     time_t start_time;
+    //@2012/10/26
     //New Fix: A plugin callback ON_RESPONE will never callback twiceif it has already return OK before!
     //So Plugin developer needn't worry about to keep the plugin's status with a client any more
 };
@@ -63,6 +64,7 @@ class PluginSlowQuery: public Plugin
             
             SlowQueryData *data = (SlowQueryData*)client->m_plugin_data_slots[plugin_index];
             
+            //@2012/10/26 
             time_t delta = time(NULL) - data->start_time;
              
             if (delta > 5)
