@@ -3,8 +3,10 @@
 
 #include "event2/event.h"
 #include "event2/util.h"
+
 #include "util.h"
 #include "plugin.h"
+#include "http.h"
 
 #include <string>
 
@@ -16,6 +18,13 @@ enum ClientStatus
     BEFORE_RESPONSE,
     ON_RESPONSE,
     AFTER_RESPONSE,
+};
+
+enum RequestStatus
+{
+    REQ_ERROR,
+    REQ_IS_COMPLETE,
+    REQ_NOT_COMPLETE
 };
 
 class Server;
@@ -32,7 +41,7 @@ struct Client
     std::string        m_intemp;            //just for once read(man 3p read)
     std::string        m_outbuf;            //all data waiting to write to client
     
-    std::string        m_request;           //one request gained from m_inbuf
+    HttpRequest        m_request;           //one request parsed by m_http_parser
     std::string        m_response;          //one response that will be appended to m_outbuf
     
     ClientStatus       m_status;  
@@ -44,17 +53,29 @@ struct Client
     bool               m_want_write;        //really want to keep write event
     bool               m_want_read;         //really want to keep read  event
     
+    //int                m_ref_count;         //TODO:FIX BUG: this variable is important!
+
+    HttpParser         m_http_parser;       //Parse http byte-stream and get a http-request
+    
     Client();
-    ~Client(); 
-    
+    ~Client();                              // unused 
+
     bool InitClient(Server *server);
-    
+    //TODO:void FreeClient(Server *server);
+
+    //TODO:
+    //void AddReferedCount(); //FIX BUG: referer count + 1
+    //void DelReferedCount(); //FIX BUG: referer count + 1
+
     void WantRead();
     void NotWantRead();
     void WantWrite();
     void NotWantWrite();
     void SetWriteEvent();
     void UnsetWriteEvent();
+    
+    RequestStatus GetHttpRequest();
+   
     bool StatusMachine();                   //core algorithm: status machine
     void SetStatus(ClientStatus status);
 
