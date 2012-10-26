@@ -9,6 +9,8 @@
 个项目更具有可读性与实用性了, 欢迎大家找BUG提建议.</p>
 <p>@2012/10/25 10:46: fake_mysql添加线程池, 更好的展现异步高并发特性.</p>
 <p>@2012/10/26 16:18: src/client.cpp优化一个逻辑问题, 以便保证任何Plugin在ON_RESPONSE阶段一旦返回OK则不会被再次回调, 因此不再需要Plugin开发者自己维护回调状态, 简化了开发逻辑复杂度. (slow_query插件代码做出了对应的修改, 以便适应这个优化后的逻辑)</p>
+<h1>@2012/10/26  23:00 Server支持HTTP协议啦~~~~~~~~~~</h1>
+
 <p>Server自带两个Plugin:<br/>
 1 ) slow_query计时plugin, 该plugin自身将会每5秒响应一次, 将会回送HTTP请求. <br/>
 2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞5秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求), 结果为Mysql_Query(uri)</p>
