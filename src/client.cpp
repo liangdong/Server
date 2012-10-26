@@ -346,6 +346,9 @@ bool Client::PluginBeforeResponse()
         }
     }
 
+    //Start To Call Plugin From Index=0 While ON_RESPONSE
+    m_plugin_response_index = 0;
+
     return true;
 }
 
@@ -355,10 +358,12 @@ PluginStatus Client::PluginOnResponse()
     Plugin * *plugins = m_server->m_plugins;
     int i;
 
-    for (i = 0; i < m_plugin_count; ++ i)
+    for (i = m_plugin_response_index; i < m_plugin_count; ++ i)
     {
-        PluginStatus status = plugins[i]->OnResponse(this, i);
+        PluginStatus status     = plugins[i]->OnResponse(this, i);
         
+        m_plugin_response_index = i;
+
         if (status == NOT_OK)
         {
             return NOT_OK;
