@@ -9,7 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <pthread.h>
+#include <pthread.h>       
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <iostream>
 #include <string>
@@ -174,7 +178,11 @@ class PluginMysql: public Plugin
 
                 pthread_mutex_unlock(&plugin->m_request_mutex);
             
-                sleep(5); // fake Mysql operation here
+                struct timeval hang_time;
+                
+                hang_time.tv_sec  = 0;
+                hang_time.tv_usec = 20 * 1000;
+                select(0, NULL, NULL, NULL, &hang_time);// fake Mysql operation here, about 20ms/req
 
                 task->m_result += "[PluginMysql] echo: Mysql_Query(";
                 task->m_result += task->m_client->m_request.m_url;

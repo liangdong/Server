@@ -68,10 +68,11 @@ class PluginSlowQuery: public Plugin
             //@2012/10/26 
             time_t delta = time(NULL) - data->start_time;
              
-            if (delta > 5)
+            if (delta > 1) 
             {
                 std::ostringstream ostream;
                 
+                ostream << PNAME << " echo:\n";
                 ostream << "Method=" << client->m_request.m_method << "\n"
                         << "Url=" << client->m_request.m_url << "\n" 
                         << "Headers=" << "{\n";
