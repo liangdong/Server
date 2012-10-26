@@ -1,6 +1,7 @@
 #include "plugin.h"
 #include "client.h"
 #include "server.h"
+#include "http.h"
 
 #include "event2/event.h"
 #include "event2/util.h"
@@ -176,10 +177,7 @@ class PluginMysql: public Plugin
                 sleep(5); // fake Mysql operation here
 
                 task->m_result += "[PluginMysql] echo: Mysql_Query(";
-                std::string::size_type len = task->m_client->m_request.size();
-                // to ignore \r if exist
-                if (task->m_client->m_request[len - 1] == '\r') task->m_result += task->m_client->m_request.substr(0, len - 1);
-                else task->m_result += task->m_client->m_request;
+                task->m_result += task->m_client->m_request.m_url;
                 task->m_result += ")\n";
 
                 pthread_mutex_lock(&plugin->m_response_mutex);

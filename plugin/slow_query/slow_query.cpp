@@ -1,5 +1,6 @@
 #include "plugin.h"
 #include "client.h"
+#include "http.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -70,7 +71,23 @@ class PluginSlowQuery: public Plugin
             if (delta > 5)
             {
                 std::ostringstream ostream;
-                ostream << PNAME "echo: Time Used=" << delta << "\n";
+                
+                ostream << "Method=" << client->m_request.m_method << "\n"
+                        << "Url=" << client->m_request.m_url << "\n" 
+                        << "Headers=" << "{\n";
+                
+                HttpRequest::HeaderDict &dict = client->m_request.m_headers;
+                HttpRequest::HeaderIter iter = dict.begin();
+
+                while (iter != dict.end())
+                {
+                    ostream << iter->first << "=" << iter->second << "\n";
+                    ++ iter;
+                }
+
+                ostream << "}\n" 
+                        << "Body=" << client->m_request.m_body << "\n";
+
                 client->m_response += ostream.str();
                 return OK; //once we return OK, the main frame won't call this OnResponse again
             }
