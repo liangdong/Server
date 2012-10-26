@@ -13,7 +13,8 @@
 struct SlowQueryData
 {
     time_t start_time;
-    bool   ok;
+    //New Fix: A plugin callback ON_RESPONE will never callback twiceif it has already return OK before!
+    //So Plugin developer needn't worry about to keep the plugin's status with a client any more
 };
 
 class PluginSlowQuery: public Plugin
@@ -48,7 +49,6 @@ class PluginSlowQuery: public Plugin
 
             SlowQueryData *data = (SlowQueryData*)client->m_plugin_data_slots[plugin_index];
             data->start_time = time(NULL);
-            data->ok = false;
 
             return true;
         }
@@ -59,25 +59,18 @@ class PluginSlowQuery: public Plugin
         }
         virtual PluginStatus OnResponse(Client *client, int plugin_index)
         {
-            //TRACE();
+            TRACE();
             
             SlowQueryData *data = (SlowQueryData*)client->m_plugin_data_slots[plugin_index];
             
-            if (data->ok)
-            {
-                return OK;
-            }
-
             time_t delta = time(NULL) - data->start_time;
-            
+             
             if (delta > 5)
             {
                 std::ostringstream ostream;
                 ostream << PNAME "echo: Time Used=" << delta << "\n";
                 client->m_response += ostream.str();
-                data->ok = true;
-                
-                return OK;
+                return OK; //once we return OK, the main frame won't call this OnResponse again
             }
             else
             {
