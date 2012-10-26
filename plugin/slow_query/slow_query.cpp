@@ -59,7 +59,7 @@ class PluginSlowQuery: public Plugin
         }
         virtual PluginStatus OnResponse(Client *client, int plugin_index)
         {
-            TRACE();
+            //TRACE();
             
             SlowQueryData *data = (SlowQueryData*)client->m_plugin_data_slots[plugin_index];
             
