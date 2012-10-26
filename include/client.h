@@ -39,7 +39,7 @@ struct Client
     
     void*             *m_plugin_data_slots;     //plugin's data for this client
     int                m_plugin_count;      
-    int                m_plugin_response_index; //which plugin to be called next on response
+    int                m_plugin_response_index; //@2012/10/26 which plugin to be called next on response
 
     bool               m_want_write;        //really want to keep write event
     bool               m_want_read;         //really want to keep read  event
