@@ -15,6 +15,7 @@ Client::Client()
 
 Client::~Client()
 {
+    //TODO:
     if (m_event) 
     {
         event_free(m_event);
@@ -27,6 +28,8 @@ Client::~Client()
 
 bool Client::InitClient(Server *server) 
 {
+    //this is what we first should do
+    //TODO:m_ref_count = 1;
     m_server = server;
 
     m_intemp.reserve(10 * 1024 * 1024);
@@ -52,6 +55,11 @@ bool Client::InitClient(Server *server)
     
     return true;
 }
+
+//TODO:FIX BUG
+//void Client::FreeClient(Server *server)
+//{
+//}
 
 bool Client::MakePluginDataSlots()
 {    
@@ -157,6 +165,32 @@ void Client::UnsetWriteEvent()
     event_add(m_event, NULL);
 }
 
+RequestStatus Client::GetHttpRequest()
+{
+    int ret = m_http_parser.HttpParseRequest(m_inbuf, &m_request);
+    
+    if (ret == -1)
+    {
+        return REQ_ERROR;
+    }
+
+    // this is import, because empty string or not complete field name or value 
+    // is also allowed for http-parser, in which case it just return 0, which is what we don't regard as am error.
+    if (ret == 0)
+    {
+        return REQ_NOT_COMPLETE;
+    }
+
+    m_inbuf.erase(0, ret);
+
+    if (m_request.m_is_complete)
+    {
+        return REQ_IS_COMPLETE;
+    }
+    
+    return REQ_NOT_COMPLETE;
+}
+
 void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *userdata)
 {
     Client *client = (Client*)userdata;
@@ -221,8 +255,11 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
 bool Client::StatusMachine()
 {
     std::string::size_type newline;
-    PluginStatus status;
     
+    PluginStatus  plugin_status;
+    RequestStatus request_status;
+    int           drain;
+
     while (true)
     {
         switch (m_status)
@@ -231,6 +268,12 @@ bool Client::StatusMachine()
                 if (!PluginBeforeRequest()) {
                     return false;
                 }
+                
+                // if this's a complete request processed before,
+                // then reset it.
+                // (actually it will do effect except the first request)
+                m_request.HttpResetRequest();
+
                 WantRead();
                 SetStatus(ON_REQUEST);
                 break;
@@ -238,15 +281,17 @@ bool Client::StatusMachine()
                 if (!PluginOnRequest()) {
                     return false;
                 }
-                if  ((newline = m_inbuf.find('\n')) != std::string::npos) //gain a request
-                {
-                    m_request = m_inbuf.substr(0, newline);
-                    m_inbuf.erase(0, newline + 1);
+                
+                request_status = GetHttpRequest();
+                
+                if (request_status == REQ_ERROR) {
+                    return false;
+                } 
+                else if (request_status == REQ_IS_COMPLETE) {
                     SetStatus(AFTER_REQUEST);
                     break;
                 }
-                else
-                {
+                else {
                     return true;
                 }
             case AFTER_REQUEST:   //transitional status
@@ -264,10 +309,15 @@ bool Client::StatusMachine()
                 SetStatus(ON_RESPONSE);
                 break;
             case ON_RESPONSE:    //lasting status
-                status = PluginOnResponse();
-                if (status == ERROR) {return false;}
-                else if (status == NOT_OK) {return true;}
-                m_outbuf += m_response;
+                plugin_status = PluginOnResponse();
+                if (plugin_status == ERROR) {return false;}
+                else if (plugin_status == NOT_OK) {return true;}
+                // this is just a temporary response for test :)
+                m_outbuf += "HTTP/1.1 200 OK\r\n";
+                m_outbuf += "Content-Type:";
+                m_outbuf += m_response.size();
+                m_outbuf += "\r\n\r\n";                 
+                m_outbuf +=  m_response;
                 SetStatus(AFTER_RESPONSE);
                 break;
             case AFTER_RESPONSE:  //transitional status
