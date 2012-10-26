@@ -362,7 +362,7 @@ PluginStatus Client::PluginOnResponse()
     {
         PluginStatus status     = plugins[i]->OnResponse(this, i);
         
-        m_plugin_response_index = i;
+        m_plugin_response_index = i; //@2012/10/26
 
         if (status == NOT_OK)
         {
