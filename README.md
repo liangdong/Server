@@ -12,8 +12,8 @@
 <h1>@2012/10/26  23:00 Server支持HTTP协议啦~~~~~~~~~~</h1>
 
 <p>Server自带两个Plugin:<br/>
-1 ) slow_query计时plugin, 该plugin自身将会每5秒响应一次, 将会回送HTTP请求. <br/>
-2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞5秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求), 结果为Mysql_Query(uri)</p>
+1 ) slow_query计时plugin, 该plugin自身将会每1秒响应一次, 将会回送HTTP请求. <br/>
+2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞20毫秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求), 结果为Mysql_Query(uri)</p>
 </p>
 
 <h2>How to use ?</h2>
@@ -24,8 +24,8 @@
 4, ./server 运行<br/>
 
 <h2>How to test ?</h2>
-curl "http://localhost:10000/" -d "hello world" <br/>
-其中-d为POST数据的内容， 也可以使用GET方法。
+1.curl "http://localhost:10000/" -d "hello world" 其中-d为POST数据的内容， 也可以使用GET方法。<br/>
+2.使用tools/test.py, 可以大致的测试一下服务器是否可以在并发量提升后是否可以正常工作 <br/>
 </p>
 
 <p></p>
