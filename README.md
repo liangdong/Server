@@ -6,7 +6,8 @@
 <p>@2012/10/22 18:42: 代码整理划分模块, 添加plugin回调逻辑, 提供简单的示例plugin demo, 供感兴趣的同学阅读与反馈. </p>
 <p>@2012/10/23 15:00: 添加Mysql Plugin, 提供了一个生动的例子, 引入多个Plugin的过程中发现了一些新问题, 因此src/client.cpp, src/server.cpp中的Plugin调用逻辑出现了变动, 在代码中有相关注释, 现在整
 个项目更具有可读性与实用性了, 欢迎大家找BUG提建议.</p>
-<p>@2012/10/25 10:46：fake_mysql添加线程池, 更好的展现异步高并发特性.</p>
+<p>@2012/10/25 10:46: fake_mysql添加线程池, 更好的展现异步高并发特性.</p>
+<p>@2012/10/26 16:18: src/client.cpp优化一个逻辑问题, 以便保证任何Plugin在ON_RESPONSE阶段一旦返回OK则不会被再次回调, 因此不再需要Plugin开发者自己维护回调状态, 简化了开发逻辑复杂度. (slow_query插件代码做出了对应的修改, 以便适应这个优化后的逻辑)</p>
 <p>Server自带两个Plugin:<br/>
 1 ) slow_query计时plugin, 将会在结果中包含请求时间, 该plugin自身将会每5秒响应一次. <br/>
 2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞5秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求).</p>
