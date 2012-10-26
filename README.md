@@ -1,5 +1,6 @@
 <h1>Server 一个纯异步的Server简单实现 (最新代码行统计：1300)</h1>
 <h3>基于Nginx/Lighttpd的状态机实现, 再也不用去一坨代码里找真相啦</h3>
+<h1>全新支持Http协议啦!!!!!!!!!!!</h3>
 <br/>  
 
 <p>最新说明:</p>
@@ -9,8 +10,8 @@
 <p>@2012/10/25 10:46: fake_mysql添加线程池, 更好的展现异步高并发特性.</p>
 <p>@2012/10/26 16:18: src/client.cpp优化一个逻辑问题, 以便保证任何Plugin在ON_RESPONSE阶段一旦返回OK则不会被再次回调, 因此不再需要Plugin开发者自己维护回调状态, 简化了开发逻辑复杂度. (slow_query插件代码做出了对应的修改, 以便适应这个优化后的逻辑)</p>
 <p>Server自带两个Plugin:<br/>
-1 ) slow_query计时plugin, 将会在结果中包含请求时间, 该plugin自身将会每5秒响应一次. <br/>
-2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞5秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求).</p>
+1 ) slow_query计时plugin, 该plugin自身将会每5秒响应一次, 将会回送HTTP请求. <br/>
+2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞5秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求), 结果为Mysql_Query(uri)</p>
 </p>
 
 <h2>How to use ?</h2>
@@ -21,8 +22,8 @@
 4, ./server 运行<br/>
 
 <h2>How to test ?</h2>
-1, telnet localhost 10000<br/>
-2, 输入你的请求, 回车结束.(可以想办法欺负Server, 使劲敲回车, 等待Server应答, Server以回车符进行拆包).<br/>
+curl "http://localhost:10000/" -d "hello world" <br/>
+其中-d为POST数据的内容， 也可以使用GET方法。
 </p>
 
 <p></p>
