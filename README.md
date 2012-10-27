@@ -1,25 +1,21 @@
-<h1>Server 一个纯异步的Server简单实现 (最新代码行统计：1300)</h1>
-<h3>基于Nginx/Lighttpd的状态机实现, 再也不用去一坨代码里找真相啦</h3>
-<h1>全新支持Http协议啦!!!!!!!!!!!</h3>
+<h1>Server 一个纯异步的Server简单实现 (代码量 <= 2000)</h1>
+<h2>基于Nginx/Lighttpd的状态机实现, 感兴趣的同学有福了. </h3>
+<h3>Server全新支持Http协议(支持KeepAlive)</h3>
 <br/>  
-
-<h1>2012/10/27 13:55 ->HTTP字节流解析有问题, 正在修复.</h1>
 
 <p>最新说明:</p>
 <p>@2012/10/22 18:42: 代码整理划分模块, 添加plugin回调逻辑, 提供简单的示例plugin demo, 供感兴趣的同学阅读与反馈. </p>
-<p>@2012/10/23 15:00: 添加Mysql Plugin, 提供了一个生动的例子, 引入多个Plugin的过程中发现了一些新问题, 因此src/client.cpp, src/server.cpp中的Plugin调用逻辑出现了变动, 在代码中有相关注释, 现在整
-个项目更具有可读性与实用性了, 欢迎大家找BUG提建议.</p>
+<p>@2012/10/23 15:00: 添加Mysql Plugin, 提供了一个生动的例子, 引入多个Plugin的过程中发现了一些新问题, 因此src/client.cpp, src/server.cpp中的Plugin调用逻辑出现了变动, 在代码中有相关注释, 现在整个项目更具有可读性与实用性了, 欢迎大家找BUG提建议.</p>
 <p>@2012/10/25 10:46: fake_mysql添加线程池, 更好的展现异步高并发特性.</p>
 <p>@2012/10/26 16:18: src/client.cpp优化一个逻辑问题, 以便保证任何Plugin在ON_RESPONSE阶段一旦返回OK则不会被再次回调, 因此不再需要Plugin开发者自己维护回调状态, 简化了开发逻辑复杂度. (slow_query插件代码做出了对应的修改, 以便适应这个优化后的逻辑)</p>
-<h1>@2012/10/26  23:00 Server支持HTTP协议</h1>
-<h1>@2012/10/27  10:44 今明两日开发工作计划:<br/>
-1, Client延迟释放逻辑的添加, 这是一个现存的隐蔽BUG, 与多线程插件相关, 正在修正中.<br/>
-2, Http 应答的相关结构体与逻辑添加, 以及ON_RESPONSE期间插件出错后进行500应答逻辑添加. <br/>
-</h1>
+<h3>@2012/10/26  23:00 Server初步支持HTTP协议</h3>
+<h3>@2012/10/27  10:44 Client延迟释放逻辑的已经完成, 这是一个现存的隐蔽BUG, 与多线程插件相关, 通过为Client事件回调逻辑添加一处状态检查以便等待所有插件完成工作后释放Client, 解决了该隐蔽复杂的逻辑BUG(欲知BUG细节可以联系我).</h3>
+<h3>@2012/10/27  15:18 Client完善Http 500应答逻辑, 如果插件在ON_RESPONSE期间返回ERROR, 则向客户端返回500错误应答，为简化此实现，状态机新增BEFORE_ERROR, ON_ERROR状态以便实现500应答逻辑.</h3>
+<h3>@2012/10/27  计划工作: 添加HttpResponse结构体, 替换原先std::string m_response, 添加相应序列化方法. 因此, 所有插件需调整代码, 直接操作HttpResponse结构体, 最终由主框架负责序列化后送出.</h3>
 
 <p>Server自带两个Plugin:<br/>
-1 ) slow_query计时plugin, 该plugin自身将会每1秒响应一次, 将会回送HTTP请求. <br/>
-2 ) fake_mysql伪装mysql query plugin, 任何请求将会阻塞20毫秒后才返回Mysql查询结果(伪装非常慢的Mysql查询请求), 结果为Mysql_Query(uri)</p>
+1 ) slow_query: 该plugin对于任何一个请求, 将会延迟1秒后应答. <br/>
+2 ) fake_mysql: 该plugin伪装真实的Mysql请求操作, 任何请求将会阻塞20毫秒后返回Mysql查询结果(伪装一个较快的Mysql查询请求), 结果为Mysql_Query(uri)
 </p>
 
 <h2>How to use ?</h2>
@@ -31,8 +27,8 @@
 
 <h2>How to test ?</h2>
 1.curl "http://localhost:10000/" -d "hello world" 其中-d为POST数据的内容， 也可以使用GET方法。<br/>
-2.使用tools/test.py, 可以大致的测试一下服务器是否可以在并发量提升后是否可以正常工作 <br/>
-</p>
+2.使用tools/test.py, 可以大致的测试一下服务器是否可以在并发量提升后是否可以正常工作(我拿来看会不会出core等.) <br/>
+3.使用tools/test_stream.py, 测试连续HTTP请求是否可以被正常响应. <br/>
 
 <p></p>
 <h2>背景:</h2>       
