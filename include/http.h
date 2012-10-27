@@ -6,17 +6,12 @@
 
 #include "http_parser.h"
 
+class Client;
+
 struct HttpRequest
 {
     typedef std::map<std::string, std::string> HeaderDict;
     typedef HeaderDict::iterator HeaderIter;
-    
-    HttpRequest()
-    {
-        m_is_complete = false;
-    }
-
-    void HttpResetRequest();
     
     std::string m_method;
     std::string m_url;
@@ -25,17 +20,14 @@ struct HttpRequest
     std::string m_new_field;   //field is waiting for value :)
     
     std::string m_body;
-    
-    bool        m_is_complete; //whether the request is completed parsed 
 };
 
 //NOTICE:you must learn how to use http-parser first, or you may be confused:)
 class HttpParser
 {
     public:
-        HttpParser();
-        
-        int  HttpParseRequest(const std::string &inbuf, HttpRequest *request);
+        void InitParser(Client *client); 
+        int  HttpParseRequest(const std::string &inbuf);
 
         static int OnMessageBegin(http_parser *parser);
         static int OnUrl(http_parser *parser, const char *at, size_t length);

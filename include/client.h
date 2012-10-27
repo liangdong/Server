@@ -8,6 +8,7 @@
 #include "plugin.h"
 #include "http.h"
 
+#include <queue>
 #include <string>
 
 enum ClientStatus
@@ -18,6 +19,8 @@ enum ClientStatus
     BEFORE_RESPONSE,
     ON_RESPONSE,
     AFTER_RESPONSE,
+    BEFORE_ERROR,
+    ON_ERROR
 };
 
 enum RequestStatus
@@ -31,6 +34,8 @@ class Server;
 
 struct Client
 {
+    typedef std::queue<HttpRequest*> RequestQueue;
+
     Server            *m_server;
 
     evutil_socket_t    m_sockfd;
@@ -40,8 +45,10 @@ struct Client
     std::string        m_inbuf;             //all data read from client
     std::string        m_intemp;            //just for once read(man 3p read)
     std::string        m_outbuf;            //all data waiting to write to client
+    RequestQueue       m_request_queue;     //queue to hold parsed request
     
-    HttpRequest        m_request;           //one request parsed by m_http_parser
+    HttpRequest       *m_request_building;  //the request being built  
+    HttpRequest       *m_request;           //the request being processed
     std::string        m_response;          //one response that will be appended to m_outbuf
     
     ClientStatus       m_status;  
@@ -53,19 +60,12 @@ struct Client
     bool               m_want_write;        //really want to keep write event
     bool               m_want_read;         //really want to keep read  event
     
-    //int                m_ref_count;         //TODO:FIX BUG: this variable is important!
-
     HttpParser         m_http_parser;       //Parse http byte-stream and get a http-request
     
     Client();
     ~Client();                              // unused 
 
     bool InitClient(Server *server);
-    //TODO:void FreeClient(Server *server);
-
-    //TODO:
-    //void AddReferedCount(); //FIX BUG: referer count + 1
-    //void DelReferedCount(); //FIX BUG: referer count + 1
 
     void WantRead();
     void NotWantRead();
