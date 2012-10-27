@@ -89,6 +89,8 @@ struct Client
     bool PluginBeforeResponse();
     PluginStatus PluginOnResponse();
     bool PluginAfterResponse();
+    
+    static void FreeClient(Client *client);
 
     static void ClientEventCallback(evutil_socket_t sockfd, short event, void *userdata);
 };
