@@ -5,6 +5,7 @@
 #include "event2/util.h"
 
 #include <iostream>
+#include <sstream>
 
 Client::Client()
 { 
@@ -19,12 +20,14 @@ Client::~Client()
 {
     if (m_event) 
     {
-        event_free(m_event);
-        close(m_sockfd);
         Server::ClientMapIter iter = m_server->m_client_map.find(m_sockfd);
         m_server->m_client_map.erase(iter);
+        
         DelPluginDataSlots();
 
+        event_free(m_event);
+        close(m_sockfd);
+        
         HttpRequest *request;
 
         while (!m_request_queue.empty())
@@ -286,7 +289,8 @@ bool Client::StatusMachine()
     
     PluginStatus  plugin_status;
     RequestStatus request_status;
-    int           drain;
+    
+    std::ostringstream ostream;
 
     while (true)
     {
@@ -343,11 +347,13 @@ bool Client::StatusMachine()
                 }
                 
                 // this is just a temporary response for test :)
-                m_outbuf += "HTTP/1.1 200 OK\r\n";
-                m_outbuf += "Content-Type:";
-                m_outbuf += m_response.size();
-                m_outbuf += "\r\n\r\n";                 
-                m_outbuf +=  m_response;
+                
+                ostream << "HTTP/1.1 200 OK\r\n" 
+                        << "Connection: keep-alive\r\n"
+                        << "Content-Length:" << m_response.size() << "\r\n"
+                        << "\r\n" << m_response;
+
+                m_outbuf +=  ostream.str();
                 
                 SetStatus(AFTER_RESPONSE);
                 break;
@@ -365,7 +371,10 @@ bool Client::StatusMachine()
                 SetStatus(BEFORE_REQUEST);
                 break;
             case BEFORE_ERROR:
-                m_outbuf += "HTTP/1.1 500 Server Error\r\n\r\n";
+                m_outbuf += "HTTP/1.1 500 Server Error\r\n";
+                m_outbuf += "Date: Fri, 27 October 2012 15:45:00 GMT\r\n";
+                m_outbuf += "Server:Async Server by LiangDong\r\n";
+                m_outbuf += "\r\n";
                 SetStatus(ON_ERROR);
                 break;
             case ON_ERROR:
