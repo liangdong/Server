@@ -26,7 +26,7 @@ src/main.o:src/main.cpp include/server.h
 src/plugin.o:src/plugin.cpp include/plugin.h
 	g++ -o $@ -c $< $(CFLAGS)
 
-src/http.o:src/http.cpp include/http.h third/http-parser/http_parser.h
+src/http.o:src/http.cpp include/http.h third/http-parser/http_parser.h include/client.h
 	g++ -o $@ -c $< $(CFLAGS)
 
 clean:

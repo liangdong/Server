@@ -185,7 +185,7 @@ class PluginMysql: public Plugin
                 select(0, NULL, NULL, NULL, &hang_time);// fake Mysql operation here, about 20ms/req
 
                 task->m_result += "[PluginMysql] echo: Mysql_Query(";
-                task->m_result += task->m_client->m_request.m_url;
+                task->m_result += task->m_client->m_request->m_url;
                 task->m_result += ")\n";
 
                 pthread_mutex_lock(&plugin->m_response_mutex);

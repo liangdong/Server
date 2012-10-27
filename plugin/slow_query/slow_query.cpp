@@ -73,11 +73,11 @@ class PluginSlowQuery: public Plugin
                 std::ostringstream ostream;
                 
                 ostream << PNAME << " echo:\n";
-                ostream << "Method=" << client->m_request.m_method << "\n"
-                        << "Url=" << client->m_request.m_url << "\n" 
+                ostream << "Method=" << client->m_request->m_method << "\n"
+                        << "Url=" << client->m_request->m_url << "\n" 
                         << "Headers=" << "{\n";
                 
-                HttpRequest::HeaderDict &dict = client->m_request.m_headers;
+                HttpRequest::HeaderDict &dict = client->m_request->m_headers;
                 HttpRequest::HeaderIter iter = dict.begin();
 
                 while (iter != dict.end())
@@ -87,7 +87,7 @@ class PluginSlowQuery: public Plugin
                 }
 
                 ostream << "}\n" 
-                        << "Body=" << client->m_request.m_body << "\n";
+                        << "Body=" << client->m_request->m_body << "\n";
 
                 client->m_response += ostream.str();
                 return OK; //once we return OK, the main frame won't call this OnResponse again
