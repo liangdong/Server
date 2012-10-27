@@ -12,6 +12,8 @@ def make_a_request():
     sockfd.connect(('localhost', 10000))
     sockfd.sendall(http_request)
     sockfd.recv(10000)
+    sockfd.sendall(http_request)
+    sockfd.recv(10000)
     sockfd.close()
 
 if __name__ == "__main__":

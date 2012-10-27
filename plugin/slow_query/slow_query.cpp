@@ -72,22 +72,23 @@ class PluginSlowQuery: public Plugin
             {
                 std::ostringstream ostream;
                 
-                ostream << PNAME << " echo:\n";
-                ostream << "Method=" << client->m_request->m_method << "\n"
-                        << "Url=" << client->m_request->m_url << "\n" 
-                        << "Headers=" << "{\n";
+                ostream << "<h1>" << PNAME << "</h1>";
+                ostream << "<table border=\"1\">" << "<tr><th>field</th><th>value</th></tr>"
+                        << "<tr><td>Method</td><td>" << client->m_request->m_method << "</td></tr>"
+                        << "<tr><td>Url</td><td>" << client->m_request->m_url << "</td></tr>" 
+                        << "<tr><td>Headers</td>" << "<td><table border=\"1\">";
                 
                 HttpRequest::HeaderDict &dict = client->m_request->m_headers;
                 HttpRequest::HeaderIter iter = dict.begin();
 
                 while (iter != dict.end())
                 {
-                    ostream << iter->first << "=" << iter->second << "\n";
+                    ostream << "<tr><td>" << iter->first << "</td><td>" << iter->second << "</td></tr>";
                     ++ iter;
                 }
 
-                ostream << "}\n" 
-                        << "Body=" << client->m_request->m_body << "\n";
+                ostream << "</table></td></tr>" 
+                        << "<tr><td>Body</td><td>" << client->m_request->m_body << "</td></tr></table>";
 
                 client->m_response += ostream.str();
                 return OK; //once we return OK, the main frame won't call this OnResponse again

@@ -20,9 +20,6 @@ Client::~Client()
 {
     if (m_event) 
     {
-        Server::ClientMapIter iter = m_server->m_client_map.find(m_sockfd);
-        m_server->m_client_map.erase(iter);
-        
         DelPluginDataSlots();
 
         event_free(m_event);
@@ -46,6 +43,20 @@ Client::~Client()
             delete m_request_building;
         }
     }
+}
+
+//fix the ~Server->~Client Bug
+void Client::FreeClient(Client *client)
+{
+    Server *server = client->m_server;
+
+    if (client->m_event)
+    {
+        Server::ClientMapIter iter = server->m_client_map.find(client->m_sockfd);
+        server->m_client_map.erase(iter);
+    }
+
+    delete client;
 }
 
 bool Client::InitClient(Server *server) 
@@ -232,13 +243,13 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
         {
             if (errno != EAGAIN && errno != EINTR)
             {
-                delete client;
+                FreeClient(client);
                 return;
             }
         }
         else if (ret == 0)
         {
-            delete client; //client wants to leave, 
+            FreeClient(client); //client wants to leave, 
                            //so let it leave whether or not there's still any data waiting to send to it.
             return;
         }
@@ -258,7 +269,7 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
             {
                 if (client->m_status != ON_RESPONSE)
                 {
-                    delete client;
+                    FreeClient(client);
                     return;
                 }
             }
@@ -278,7 +289,7 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
     // core logic, just call status machine to handle the whole thing, it's so easy :)
     if (!client->StatusMachine()) //only return false when m_status == ERROR
     {
-        delete client; //some error happend, kick out the client
+        FreeClient(client); //some error happend, kick out the client
     }
 }
 

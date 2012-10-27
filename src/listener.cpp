@@ -57,7 +57,7 @@ void Listener::ListenerEventCallback(evutil_socket_t sockfd, short event, void *
 
         if (!ok)
         {
-            delete client;
+            Client::FreeClient(client);
         }
     }
     else
