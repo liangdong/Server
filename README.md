@@ -11,7 +11,7 @@
 <h3>@2012/10/26  23:00 Server初步支持HTTP协议</h3>
 <h3>@2012/10/27  10:44 Client延迟释放逻辑的已经完成, 这是一个现存的隐蔽BUG, 与多线程插件相关, 通过为Client事件回调逻辑添加一处状态检查以便等待所有插件完成工作后释放Client, 解决了该隐蔽复杂的逻辑BUG(欲知BUG细节可以联系我).</h3>
 <h3>@2012/10/27  15:18 Client完善Http 500应答逻辑, 如果插件在ON_RESPONSE期间返回ERROR, 则向客户端返回500错误应答，为简化此实现，状态机新增BEFORE_ERROR, ON_ERROR状态以便实现500应答逻辑.</h3>
-<h3>@2012/10/27  计划工作: 添加HttpResponse结构体, 替换原先std::string m_response, 添加相应序列化方法. 因此, 所有插件需调整代码, 直接操作HttpResponse结构体, 最终由主框架负责序列化后送出.</h3>
+<h3>@2012/10/27  0:16 添加HttpResponse结构体, 替换原先std::string m_response, 添加相应序列化方法. 因此, 所有插件需调整代码, 直接操作HttpResponse结构体, 最终由主框架负责序列化后送出.</h3>
 
 <p>Server自带两个Plugin:<br/>
 1 ) slow_query: 该plugin对于任何一个请求, 将会延迟1秒后应答. <br/>
