@@ -49,7 +49,7 @@ struct Client
     
     HttpRequest       *m_request_building;  //the request being built  
     HttpRequest       *m_request;           //the request being processed
-    std::string        m_response;          //one response that will be appended to m_outbuf
+    HttpResponse       m_response;          //one response that will be appended to m_outbuf
     
     ClientStatus       m_status;  
     

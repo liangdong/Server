@@ -8,11 +8,23 @@
 
 class Client;
 
+typedef std::map<std::string, std::string> HeaderDict;
+typedef HeaderDict::iterator HeaderIter;
+
+struct HttpResponse
+{
+    int         m_code;
+    std::string m_explain;
+    std::string m_body; //Content-Length shall be set to body's length automatically
+    
+    HeaderDict  m_headers;
+
+    std::string SerializeResponse();
+    void        ResetResponse();
+};
+
 struct HttpRequest
 {
-    typedef std::map<std::string, std::string> HeaderDict;
-    typedef HeaderDict::iterator HeaderIter;
-    
     std::string m_method;
     std::string m_url;
     

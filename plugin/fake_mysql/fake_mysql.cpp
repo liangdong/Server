@@ -214,7 +214,7 @@ class PluginMysql: public Plugin
                 plugin->m_response_queue.pop();
                 pthread_mutex_unlock(&plugin->m_response_mutex);
                 
-                task->m_client->m_response += task->m_result;
+                task->m_client->m_response.m_body += task->m_result;
                 task->m_status = DONE;
             }
         }

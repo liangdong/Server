@@ -2,8 +2,40 @@
 #include "client.h"
 
 #include <iostream>
+#include <sstream>
 
 #include <string.h>
+
+std::string HttpResponse::SerializeResponse()
+{
+    std::ostringstream ostream;
+
+    ostream << "Http/1.1 " << m_code << " " << m_explain << "\r\n" 
+            << "Server: A Async Server By LiangDong"     << "\r\n"
+            << "Connection: keep-alive"                  << "\r\n";
+
+    HeaderIter iter = m_headers.begin();
+
+    while (iter != m_headers.end())
+    {
+        ostream << iter->first << ": " << iter->second   << "\r\n";
+        ++ iter;
+    }
+
+    ostream << "Content-Length: " << m_body.size()       << "\r\n\r\n";
+    ostream << m_body;
+
+    return ostream.str();
+}
+
+void HttpResponse::ResetResponse()
+{
+    m_code = 200;
+
+    m_explain.clear();  
+    m_body.clear();
+    m_headers.clear();
+}
 
 void HttpParser::InitParser(Client *client)
 {

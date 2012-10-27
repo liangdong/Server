@@ -78,8 +78,8 @@ class PluginSlowQuery: public Plugin
                         << "<tr><td>Url</td><td>" << client->m_request->m_url << "</td></tr>" 
                         << "<tr><td>Headers</td>" << "<td><table border=\"1\">";
                 
-                HttpRequest::HeaderDict &dict = client->m_request->m_headers;
-                HttpRequest::HeaderIter iter = dict.begin();
+                HeaderDict &dict = client->m_request->m_headers;
+                HeaderIter iter = dict.begin();
 
                 while (iter != dict.end())
                 {
@@ -90,7 +90,7 @@ class PluginSlowQuery: public Plugin
                 ostream << "</table></td></tr>" 
                         << "<tr><td>Body</td><td>" << client->m_request->m_body << "</td></tr></table>";
 
-                client->m_response += ostream.str();
+                client->m_response.m_body += ostream.str();
                 return OK; //once we return OK, the main frame won't call this OnResponse again
             }
             else

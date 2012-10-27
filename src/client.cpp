@@ -5,7 +5,6 @@
 #include "event2/util.h"
 
 #include <iostream>
-#include <sstream>
 
 Client::Client()
 { 
@@ -301,8 +300,6 @@ bool Client::StatusMachine()
     PluginStatus  plugin_status;
     RequestStatus request_status;
     
-    std::ostringstream ostream;
-
     while (true)
     {
         switch (m_status)
@@ -357,14 +354,7 @@ bool Client::StatusMachine()
                     return true;
                 }
                 
-                // this is just a temporary response for test :)
-                
-                ostream << "HTTP/1.1 200 OK\r\n" 
-                        << "Connection: keep-alive\r\n"
-                        << "Content-Length:" << m_response.size() << "\r\n"
-                        << "\r\n" << m_response;
-
-                m_outbuf +=  ostream.str();
+                m_outbuf += m_response.SerializeResponse(); 
                 
                 SetStatus(AFTER_RESPONSE);
                 break;
@@ -375,17 +365,21 @@ bool Client::StatusMachine()
                 
                 delete m_request;
                 m_request = NULL;
-
-                m_response.clear();
+                
+                m_response.ResetResponse();
                 
                 NotWantWrite();
                 SetStatus(BEFORE_REQUEST);
                 break;
             case BEFORE_ERROR:
-                m_outbuf += "HTTP/1.1 500 Server Error\r\n";
-                m_outbuf += "Date: Fri, 27 October 2012 15:45:00 GMT\r\n";
-                m_outbuf += "Server:Async Server by LiangDong\r\n";
-                m_outbuf += "\r\n";
+                m_response.ResetResponse();
+                
+                m_response.m_code = 500;
+                m_response.m_explain = "Server Error";
+                m_response.m_headers["Date"] = "Fri, 27 October 2012 15:45:00 GMT";
+        
+                m_outbuf += m_response.SerializeResponse();
+
                 SetStatus(ON_ERROR);
                 break;
             case ON_ERROR:
