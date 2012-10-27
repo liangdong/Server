@@ -6,16 +6,17 @@
 
 #include <iostream>
 
-Client::Client() 
+Client::Client()
 { 
     m_event = NULL; 
     m_plugin_data_slots = NULL;
     m_plugin_count = 0;
+    m_request = NULL;
+    m_request_building = NULL;
 }
 
 Client::~Client()
 {
-    //TODO:
     if (m_event) 
     {
         event_free(m_event);
@@ -23,6 +24,24 @@ Client::~Client()
         Server::ClientMapIter iter = m_server->m_client_map.find(m_sockfd);
         m_server->m_client_map.erase(iter);
         DelPluginDataSlots();
+
+        HttpRequest *request;
+
+        while (!m_request_queue.empty())
+        {
+            request = m_request_queue.front();    
+            m_request_queue.pop();
+            delete request;
+        }
+
+        if (m_request)
+        {
+            delete m_request;
+        }
+        if (m_request_building)
+        {
+            delete m_request_building;
+        }
     }
 }
 
@@ -36,6 +55,8 @@ bool Client::InitClient(Server *server)
     m_inbuf.reserve(10 * 1024 * 1024);
     m_outbuf.reserve(10 * 1024 * 1024);
     
+    m_http_parser.InitParser(this);
+
     evutil_make_socket_nonblocking(m_sockfd);
     m_event = event_new(m_server->m_server_base, m_sockfd, EV_PERSIST, Client::ClientEventCallback, this);
     event_add(m_event, NULL); 
@@ -55,11 +76,6 @@ bool Client::InitClient(Server *server)
     
     return true;
 }
-
-//TODO:FIX BUG
-//void Client::FreeClient(Server *server)
-//{
-//}
 
 bool Client::MakePluginDataSlots()
 {    
@@ -167,7 +183,14 @@ void Client::UnsetWriteEvent()
 
 RequestStatus Client::GetHttpRequest()
 {
-    int ret = m_http_parser.HttpParseRequest(m_inbuf, &m_request);
+    if (m_request_queue.size())
+    {
+        m_request = m_request_queue.front();
+        m_request_queue.pop();
+        return REQ_IS_COMPLETE;
+    }
+
+    int ret = m_http_parser.HttpParseRequest(m_inbuf);
     
     if (ret == -1)
     {
@@ -183,8 +206,10 @@ RequestStatus Client::GetHttpRequest()
 
     m_inbuf.erase(0, ret);
 
-    if (m_request.m_is_complete)
+    if (m_request_queue.size())
     {
+        m_request = m_request_queue.front();
+        m_request_queue.pop();
         return REQ_IS_COMPLETE;
     }
     
@@ -228,8 +253,11 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
         {
             if (errno != EAGAIN && errno != EINTR)
             {
-                delete client;
-                return;
+                if (client->m_status != ON_RESPONSE)
+                {
+                    delete client;
+                    return;
+                }
             }
         }
         else
@@ -245,7 +273,7 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
     }
 
     // core logic, just call status machine to handle the whole thing, it's so easy :)
-    if (!client->StatusMachine())
+    if (!client->StatusMachine()) //only return false when m_status == ERROR
     {
         delete client; //some error happend, kick out the client
     }
@@ -269,11 +297,6 @@ bool Client::StatusMachine()
                     return false;
                 }
                 
-                // if this's a complete request processed before,
-                // then reset it.
-                // (actually it will do effect except the first request)
-                m_request.HttpResetRequest();
-
                 WantRead();
                 SetStatus(ON_REQUEST);
                 break;
@@ -310,24 +333,47 @@ bool Client::StatusMachine()
                 break;
             case ON_RESPONSE:    //lasting status
                 plugin_status = PluginOnResponse();
-                if (plugin_status == ERROR) {return false;}
-                else if (plugin_status == NOT_OK) {return true;}
+                
+                if (plugin_status == ERROR) {
+                    SetStatus(BEFORE_ERROR);
+                    continue;
+                }
+                else if (plugin_status == NOT_OK) {
+                    return true;
+                }
+                
                 // this is just a temporary response for test :)
                 m_outbuf += "HTTP/1.1 200 OK\r\n";
                 m_outbuf += "Content-Type:";
                 m_outbuf += m_response.size();
                 m_outbuf += "\r\n\r\n";                 
                 m_outbuf +=  m_response;
+                
                 SetStatus(AFTER_RESPONSE);
                 break;
             case AFTER_RESPONSE:  //transitional status
                 if (!PluginAfterResponse()) {
                     return false;
                 }
+                
+                delete m_request;
+                m_request = NULL;
+
                 m_response.clear();
+                
                 NotWantWrite();
                 SetStatus(BEFORE_REQUEST);
                 break;
+            case BEFORE_ERROR:
+                m_outbuf += "HTTP/1.1 500 Server Error\r\n\r\n";
+                SetStatus(ON_ERROR);
+                break;
+            case ON_ERROR:
+                if (!m_outbuf.size())
+                {
+                    return false; //let the client leave, error 500 has been sent away
+                }
+                return true;
         }
     }
 
