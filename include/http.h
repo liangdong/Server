@@ -13,11 +13,12 @@ typedef HeaderDict::iterator HeaderIter;
 
 struct HttpResponse
 {
-    int         m_code;
+    int         m_code;     //200, 404, 500 for example.
+
     std::string m_explain;
-    std::string m_body; //Content-Length shall be set to body's length automatically
+    std::string m_body;     
     
-    HeaderDict  m_headers;
+    HeaderDict  m_headers;  //Content-Length will be set to the m_body's length automatically 
 
     std::string SerializeResponse();
     void        ResetResponse();
@@ -25,13 +26,16 @@ struct HttpResponse
 
 struct HttpRequest
 {
-    std::string m_method;
-    std::string m_url;
+    std::string m_method;    //GET, POST, HEADER for example.
+    std::string m_url;       
     
-    HeaderDict  m_headers;
-    std::string m_new_field;   //field is waiting for value :)
+    HeaderDict  m_headers;   
+    std::string m_new_field; //field is waiting for value while parsing:)
     
     std::string m_body;
+
+    //TODO:Later, I Need To Write Some convenient API for 
+    //plugin developer to operate the http request & response.
 };
 
 //NOTICE:you must learn how to use http-parser first, or you may be confused:)
