@@ -8,11 +8,11 @@
 
 Client::Client()
 { 
-    m_event = NULL; 
+    m_event             = NULL; 
     m_plugin_data_slots = NULL;
-    m_plugin_count = 0;
-    m_request = NULL;
-    m_request_building = NULL;
+    m_plugin_count      = 0;
+    m_request           = NULL;
+    m_request_building  = NULL;
 }
 
 Client::~Client()
@@ -37,6 +37,7 @@ Client::~Client()
         {
             delete m_request;
         }
+
         if (m_request_building)
         {
             delete m_request_building;
@@ -60,8 +61,6 @@ void Client::FreeClient(Client *client)
 
 bool Client::InitClient(Server *server) 
 {
-    //this is what we first should do
-    //TODO:m_ref_count = 1;
     m_server = server;
 
     m_intemp.reserve(10 * 1024 * 1024);
@@ -210,8 +209,8 @@ RequestStatus Client::GetHttpRequest()
         return REQ_ERROR;
     }
 
-    // this is import, because empty string or not complete field name or value 
-    // is also allowed for http-parser, in which case it just return 0, which is what we don't regard as am error.
+    // this is import, because empty string or non-completed field or value
+    // is also allowed for http-parser, in which case it just return 0, which is what we shouldn't regard as an error.
     if (ret == 0)
     {
         return REQ_NOT_COMPLETE;
@@ -249,7 +248,7 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
         else if (ret == 0)
         {
             FreeClient(client); //client wants to leave, 
-                           //so let it leave whether or not there's still any data waiting to send to it.
+                                //so let it leave whether or not there's still any data waiting to send to it.
             return;
         }
         else
@@ -286,9 +285,9 @@ void Client::ClientEventCallback(evutil_socket_t sockfd, short event, void *user
     }
 
     // core logic, just call status machine to handle the whole thing, it's so easy :)
-    if (!client->StatusMachine()) //only return false when m_status == ERROR
+    if (!client->StatusMachine())
     {
-        FreeClient(client); //some error happend, kick out the client
+        FreeClient(client);  //some error has happend, kick out the client.
     }
 }
 
@@ -346,14 +345,15 @@ bool Client::StatusMachine()
             case ON_RESPONSE:    //lasting status
                 plugin_status = PluginOnResponse();
                 
-                if (plugin_status == ERROR) {
+                if (plugin_status == ERROR) { //need to send back 500(Server Internal Error)
                     SetStatus(BEFORE_ERROR);
                     continue;
                 }
-                else if (plugin_status == NOT_OK) {
+                else if (plugin_status == NOT_OK) { //Plugin isn't ready, we continue with other client
                     return true;
                 }
                 
+                //All Plugins have been finished, Send out the response.
                 m_outbuf += m_response.SerializeResponse(); 
                 
                 SetStatus(AFTER_RESPONSE);
@@ -383,9 +383,9 @@ bool Client::StatusMachine()
                 SetStatus(ON_ERROR);
                 break;
             case ON_ERROR:
-                if (!m_outbuf.size())
+                if (!m_outbuf.size()) //keep write event to check if 500 response has been sent away
                 {
-                    return false; //let the client leave, error 500 has been sent away
+                    return false;     //let the client leave, error 500 has been sent away.
                 }
                 return true;
         }
