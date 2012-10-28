@@ -137,6 +137,6 @@ int HttpParser::OnMessageComplete(http_parser *parser)
     client->m_request_building = NULL;
 
     std::cerr << __FUNCTION__ << std::endl;
-
+ 
     return 0;
 }
