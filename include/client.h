@@ -60,10 +60,10 @@ struct Client
     bool               m_want_write;        //really want to keep write event
     bool               m_want_read;         //really want to keep read  event
     
-    HttpParser         m_http_parser;       //Parse http byte-stream and get a http-request
+    HttpParser         m_http_parser;       //Parse http byte-stream and get some http-requests
     
     Client();
-    ~Client();                              // unused 
+    ~Client();                               
 
     bool InitClient(Server *server);
 
