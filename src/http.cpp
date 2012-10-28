@@ -75,8 +75,6 @@ int HttpParser::OnMessageBegin(http_parser *parser)
 {
     Client *client = (Client*)parser->data;
     
-    // this line has no real effect,
-    // but i just want to keep it to help you understanding.
     client->m_request_building = new HttpRequest();
     
     return 0;
@@ -102,7 +100,7 @@ int HttpParser::OnHeaderField(http_parser *parser, const char *at, size_t length
 
 int HttpParser::OnHeaderValue(http_parser *parser, const char *at, size_t length)
 {
-    Client *client = (Client*)parser->data;
+    Client      *client  = (Client*)parser->data;
     HttpRequest *request = client->m_request_building;
     
     request->m_headers[request->m_new_field] = std::string(at, length);
