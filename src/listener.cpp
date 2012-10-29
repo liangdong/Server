@@ -2,6 +2,8 @@
 #include "server.h"
 #include "client.h"
 
+#include <iostream>
+
 Listener::Listener(const std::string &ip, short port)
 {
     m_event          = NULL;
@@ -59,6 +61,8 @@ void Listener::ListenerEventCallback(evutil_socket_t sockfd, short event, void *
         {
             Client::FreeClient(client);
         }
+
+        std::cerr << "listen accept=" << client->m_sockfd << std::endl;
     }
     else
     {

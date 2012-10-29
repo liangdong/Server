@@ -31,8 +31,8 @@ std::string HttpResponse::SerializeResponse()
 void HttpResponse::ResetResponse()
 {
     m_code = 200;
+    m_explain = "OK";
 
-    m_explain.clear();  
     m_body.clear();
     m_headers.clear();
 }
