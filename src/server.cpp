@@ -10,6 +10,7 @@
 Server::Server(const std::string &ip, short port): m_listener(ip, port)
 {
     m_server_base  = NULL;
+    m_timer_event  = NULL;
     m_plugins      = NULL;
     m_plugin_count = 0;
 }
@@ -35,7 +36,8 @@ Server::~Server()
         // plugins can't be remove until client's plugin_data_slots has been cleared by plugins
         RemovePlugins();
 
-        event_free(m_exit_event);    
+        event_free(m_exit_event);
+        event_free(m_timer_event);
         event_base_free(m_server_base);
 
         std::cerr << "Total Client: " << m_listener.m_count_client << std::endl;
