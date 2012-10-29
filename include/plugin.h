@@ -17,6 +17,7 @@ class Plugin
         typedef Plugin* (*SetupPlugin)();
         typedef void    (*RemovePlugin)(Plugin *plugin);
 
+        virtual bool OnTimer(Server *server, int plugin_index); //be executed every 1 sec
         virtual bool OnLoad(Server *server, int plugin_index);
         virtual bool OnInit(Client *client, int plugin_index);
         virtual bool BeforeRequest(Client *client, int plugin_index);
@@ -28,6 +29,7 @@ class Plugin
         virtual void OnClose(Client *client, int plugin_index);
         virtual void OnDestroy(Server *server, int plugin_index);
         
+
         Plugin();
         virtual ~Plugin(); 
         

@@ -9,8 +9,10 @@ Plugin::Plugin()
     m_setup_plugin  = NULL;
     m_remove_plugin = NULL;
 }
+
 Plugin::~Plugin(){}
 
+bool Plugin::OnTimer(Server *server, int plugin_index){return true;}
 bool Plugin::OnLoad(Server *server, int plugin_index){return true;}
 bool Plugin::OnInit(Client *client, int plugin_index){return true;}
 bool Plugin::BeforeRequest(Client *client, int plugin_index){return true;}
@@ -24,7 +26,6 @@ void Plugin::OnDestroy(Server *server, int plugin_index){}
 
 // add new plugin here, absolute path is welcomed ;)
 const char * plugin_config[] = {
-   "plugin/slow_query/plugin_slow_query.so",
-   "plugin/fake_mysql/plugin_fake_mysql.so", 
-   NULL 
+    "plugin/plugin_cgi/plugin_cgi.so",
+    NULL 
 };

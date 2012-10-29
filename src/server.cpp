@@ -145,6 +145,33 @@ void Server::UnloadPlugins()
     }
 }
 
+void Server::ServerOnTimer(evutil_socket_t, short, void *userdata)
+{
+    Server *server = (Server*)userdata;
+
+    Plugin *plugin;
+    int     i;
+    
+    for (i = 0; i < server->m_plugin_count; ++ i)
+    {
+        plugin = server->m_plugins[i];
+
+        if (!plugin->OnTimer(server, i))
+        {
+            event_base_loopexit(server->m_server_base, NULL);
+            return;
+        }
+    }
+
+    struct timeval timer;
+    timer.tv_sec  = 1;
+    timer.tv_usec = 0;
+    
+    evtimer_del(server->m_timer_event);
+    evtimer_assign(server->m_timer_event, server->m_server_base, ServerOnTimer, server);
+    evtimer_add(server->m_timer_event, &timer);
+}
+
 bool Server::StartServer()
 {
     m_server_base = event_base_new();
@@ -156,6 +183,14 @@ bool Server::StartServer()
     
     if (SetupPlugins() && LoadPlugins())
     {
+        m_timer_event = evtimer_new(m_server_base, ServerOnTimer, this);
+
+        struct timeval timer;
+        timer.tv_sec  = 1;
+        timer.tv_usec = 0;
+
+        evtimer_add(m_timer_event, &timer);
+
         event_base_dispatch(m_server_base);
     }
     else
