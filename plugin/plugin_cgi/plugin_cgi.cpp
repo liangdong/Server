@@ -233,7 +233,6 @@ class PluginCgi: public Plugin
         else if (cgi_data->m_status == CGI_OK)
         {
             client->m_response.m_body = cgi_data->m_data_recv;
-            std::cerr << client->m_response.m_body << std::endl;
             return OK;
         }
         else if (cgi_data->m_status == CGI_ERROR)
