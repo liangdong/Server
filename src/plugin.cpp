@@ -27,5 +27,6 @@ void Plugin::OnDestroy(Server *server, int plugin_index){}
 // add new plugin here, absolute path is welcomed ;)
 const char * plugin_config[] = {
     "plugin/plugin_cgi/plugin_cgi.so",
+    "plugin/plugin_static/plugin_static.so",
     NULL 
 };
