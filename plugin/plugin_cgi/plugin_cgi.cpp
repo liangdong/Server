@@ -6,6 +6,7 @@
 #include "event2/event.h"
 #include "event2/util.h"
 
+#include <string.h>
 #include <stdlib.h>
 
 #include <signal.h>
@@ -13,6 +14,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <regex.h>
 
 #include <iostream>
 #include <string>
@@ -47,6 +49,68 @@ struct CgiData
 
 class PluginCgi: public Plugin
 {
+    char* * PutEnv(char* *env, int &size, const std::string &key, const std::string &value)
+    {
+        env = (char* *)realloc(env, (++ size) * sizeof(char*));
+        
+        std::string pair = key + "=" + value;
+
+        env[size - 2] = strdup(pair.c_str());
+        env[size - 1] = NULL;
+
+        return env;
+    }
+
+    char* const * PrepareCgiEnviron(HttpRequest *request)
+    {
+        int    size = 1;
+        char* *env  = (char* *)malloc(sizeof(char*));
+        env[0]      = NULL;
+        
+        env = PutEnv(env, size, "method", request->m_method);
+        env = PutEnv(env, size, "url", request->m_url);
+        env = PutEnv(env, size, "body", request->m_body);
+        
+        HeaderIter iter = request->m_headers.begin();
+
+        while (iter != request->m_headers.end())
+        {
+            env = PutEnv(env, size, iter->first, iter->second);
+            ++ iter;
+        }
+
+        return env;
+    }
+
+    CgiStatus ValidateCgiUri(const std::string &uri)
+    {
+        std::string::size_type suffix_index = uri.rfind(".cgi");
+        
+        if (suffix_index == std::string::npos || suffix_index != uri.size() - 4)
+        {
+            return CGI_IGNORE;
+        }
+
+        regex_t    reg;
+        regmatch_t pmatch;
+        int        nmatch;
+
+        regcomp(&reg, "^/cgi/[^\\.]*.cgi$", REG_EXTENDED);
+        nmatch = regexec(&reg, uri.c_str(), 1, &pmatch, 0);
+
+        if (nmatch)
+        {
+            return CGI_IGNORE;
+        }
+    
+        if (access(uri.substr(1).c_str(), X_OK) == -1)
+        {
+            return CGI_NOT_EXIST;
+        }
+
+        return CGI_INIT;
+    }
+
     virtual bool OnTimer(Server *server, int plugin_index)
     {
         TRACE();
@@ -105,27 +169,10 @@ class PluginCgi: public Plugin
     {
         TRACE();
 
-        CgiData *cgi_data    = (CgiData*)client->m_plugin_data_slots[plugin_index];
-        HttpRequest *request = client->m_request;
+        CgiData     *cgi_data = (CgiData*)client->m_plugin_data_slots[plugin_index];
+        HttpRequest *request  = client->m_request;
 
-        std::string::size_type suffix_index = request->m_url.rfind(".cgi");
-        
-        if (suffix_index == std::string::npos || 
-            suffix_index != request->m_url.size() - 4)
-        {
-            cgi_data->m_status = CGI_IGNORE;
-            return true; //uri is not a cgi, we ignore it.
-        }
-
-        std::string cgi_path = request->m_url.substr(1);
-        
-        if (access(cgi_path.c_str(), X_OK) == -1)
-        {
-            cgi_data->m_status = CGI_NOT_EXIST;
-            return true;
-        }
-
-        cgi_data->m_status = CGI_INIT;
+        cgi_data->m_status = ValidateCgiUri(request->m_url);
 
         return true;
     }
@@ -154,11 +201,11 @@ class PluginCgi: public Plugin
                 dup2(cgi_data->m_data_pipe[1], 1);
                 close(cgi_data->m_data_pipe[1]);
 
-                //this can be attack easily
-                std::string path = "." + request->m_url;
+                std::string path = request->m_url.substr(1);
                 
-                // temp test
-                execlp("sh", "sh", "-c", path.c_str(), NULL);
+                char* const *env = PrepareCgiEnviron(request);             
+
+                execle("/bin/bash", "sh", "-c", path.c_str(), NULL, env);
                 exit(127);
             }
             

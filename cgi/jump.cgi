@@ -1,3 +1,6 @@
 #!/usr/bin/env python
+#coding=utf-8
 
-print "<h1>5^2=" + str(5 ** 2) + "</h1>"
+import os
+
+print os.environ
