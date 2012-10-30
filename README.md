@@ -3,7 +3,7 @@
 <h3>****Server全新支持Http协议(支持KeepAlive)****</h3>
 <h4>您可以直接访问http://119.254.35.221:10000/看一下效果</h4>
 
-<h1>Http-Server分支用于开发Http相关的插件, 主框架代码与主干相同, 已支持CGI Plugin</h1>
+<h1>Http-Server分支用于开发Http相关的插件, 主框架代码与主干相同, 已支持CGI Plugin, Static Plugin以便支持动态脚本与静态页面</h1>
 
 <p>最新说明:</p>
 <p>@2012/10/22 18:42: 代码整理划分模块, 添加plugin回调逻辑, 提供简单的示例plugin demo, 供感兴趣的同学阅读与反馈. </p>
