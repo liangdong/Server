@@ -95,7 +95,7 @@ class PluginCgi: public Plugin
         regmatch_t pmatch;
         int        nmatch;
 
-        regcomp(&reg, "^/cgi/[^\\.]*.cgi$", REG_EXTENDED);
+        regcomp(&reg, "^/cgi/[^/]*.cgi$", REG_EXTENDED);
         nmatch = regexec(&reg, uri.c_str(), 1, &pmatch, 0);
 
         if (nmatch)
