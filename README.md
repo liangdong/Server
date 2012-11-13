@@ -1,5 +1,5 @@
 <h1>Server 一个纯异步的Server简单实现</h1>
-<h2>基于Nginx/Lighttpd的状态机实现(大名鼎鼎的redis也这样), 感兴趣的同学有福了. </h3>
+<h2>基于Nginx/Lighttpd的状态机实现(没有什么Server架构可以比Lighttpd更优雅了), 感兴趣的同学有福了. </h3>
 <h3>****Server全新支持Http协议(支持KeepAlive)****</h3>
 <h4>您可以直接访问http://119.254.35.221:10000/看一下效果</h4>
 
